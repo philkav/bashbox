@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
 quit(){
+	## Args = String (quit message)
+	## Output = Relays args to user, and exits with status 128
 	echo "$@"
 	exit 128
 }
 
 countdown(){
+	## Args = int (time in seconds)
+	## Output = single line (no line feed) displaying remaining time
 	local seconds=${1:-0}
 	while [ ${seconds} -gt 0 ]; do
 		printf "\rTime Remaining: %d seconds" "${seconds}"
@@ -13,4 +17,70 @@ countdown(){
 		let seconds--
 	done 2>/dev/null
 	echo
+}
+
+now(){
+	date +%s
+}
+
+convert_seconds(){
+	minute=60
+	hour=$((minute * 60))
+	day=$((hour * 24))
+	week=$((day * 7))
+	year=$((day * 365))
+
+	seconds=$1
+	unit="years"
+	[ $seconds -lt $year ] && unit="weeks" 
+	[ $seconds -lt $week ] && unit="days" 
+	[ $seconds -lt $day ] && unit="hours" 
+	[ $seconds -lt $hour ] && unit="minutes" 
+	[ $seconds -lt $minute ] && unit="seconds"
+
+	
+	if [ ${unit} == "minutes" ]; then
+		minutes=$( echo $seconds \/ ${minute} | bc -l )
+		printf "%.2f minutes\n" "${minutes}"
+
+	elif [ ${unit} == "hours" ]; then
+		hours=$( echo $seconds \/ ${hour} | bc -l )
+		printf "%.2f hours\n" "${hours}"
+
+	elif [ ${unit} == "days" ]; then
+		days=$( echo $seconds \/ ${day} | bc -l )
+		printf "%.2f days\n" "${days}"
+
+	elif [ ${unit} == "weeks" ]; then
+		weeks=$( echo $seconds \/ ${week} | bc -l )
+		printf "%.2f weeks\n" "${weeks}"
+
+	elif [ ${unit} == "years" ]; then
+		years=$( echo $seconds \/ ${year} | bc -l )
+		printf "%.2f years\n" "${years}"
+
+	else ## seconds
+		printf "%d seconds\n" "${seconds}"
+	fi
+	
+}
+
+last_modified(){
+	## Args = string (filename)
+	## Example:
+	# last_modified utils README.md /etc/hosts /etc/passwd 
+	# 1533972022 | Sat Aug 11 07:20:22 UTC 2018 | 36 seconds       | utils
+	# 1533968711 | Sat Aug 11 06:25:11 UTC 2018 | 55.78 minutes    | README.md
+	# 1463409816 | Mon May 16 14:43:36 UTC 2016 | 2.24 years       | /etc/hosts
+	# 1525118877 | Mon Apr 30 20:07:57 UTC 2018 | 14.64 weeks      | /etc/passwd
+
+	files=$@
+	for f in ${files}; do
+		[ ! -e ${f} ] && continue
+		modified=$(stat -c %Y ${f})
+		utc=$(date --date="@$modified" --utc)
+		age_seconds=$(( $(now) - ${modified} ))
+		age=$(convert_seconds ${age_seconds})
+		printf "%-10s | %-28s | %-16s | %s\n" "${modified}"  "${utc}" "${age}" "${f}"
+	done
 }
