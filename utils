@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+quit(){
+	echo "$@"
+	exit 128
+}
+
+countdown(){
+	local seconds=${1:-0}
+	while [ ${seconds} -gt 0 ]; do
+		printf "\rTime Remaining: %d seconds" "${seconds}"
+		sleep 1;
+		let seconds--
+	done 2>/dev/null
+	echo
+}
