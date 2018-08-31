@@ -123,6 +123,16 @@ color_text(){
 	tput sgr0
 }
 
+rainbow_text(){
+	words=($@)
+	colors=(red lightred yellow lightyellow green lightgreen blue lightblue cyan lightcyan magneta lightmagneta)
+
+	for (( i=0; i < ${#words[@]}; i++)) do
+		mod=$(( $i % ${#colors[@]} ))
+		printf "$(color_text ${colors[$mod]} ${words[$i]}) "
+	done && echo
+}
+
 color_text_example(){
 	## This function is really just an example of how to use the above "color_text" function
 	mystring="$(color_text red hello world) $(color_text yellow Enjoy these colors) $(color_text cyan Goodbye!)"
