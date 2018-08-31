@@ -133,6 +133,58 @@ rainbow_text(){
 	done && echo
 }
 
+num_to_perm(){
+	# 4 2 1
+	# r w x | #
+	# ------+--
+	# 0 0 0 | 0
+	# 0 0 1 | 1
+	# 0 1 0 | 2
+	# 0 1 1 | 3
+	# 1 0 0 | 4
+	# 1 0 1 | 5
+	# 1 1 0 | 6
+	# 1 1 1 | 7
+
+	num=$1
+	r=$((num / 4))
+	w=$((num % 4 / 2))
+	x=$((num % 2))
+	[ $r -eq 0 ] && rt=lightred || rt=lightgreen
+	[ $w -eq 0 ] && wt=lightred || wt=lightgreen
+	[ $x -eq 0 ] && xt=lightred || xt=lightgreen
+	echo "$(color_text $rt READ) $(color_text $wt WRITE) $(color_text $xt EXECUTE)"
+}
+
+fileowner(){
+	stat -c %U $1
+}
+
+filegroup(){
+	stat -c %G $1
+}
+
+fileperms(){
+
+	files=($@)
+	for file in ${files[@]}; do
+		mode=$(stat -c %a ${file})
+		owner=$((mode / 100))
+		group=$((mode % 100 / 10 ))
+		other=$((mode % 10))
+
+		echo "[$file]"
+		printf "%5s %-16s: " "Owner" "($(fileowner $file))"
+		num_to_perm ${owner}
+		printf "%5s %-16s: " "Group" "($(filegroup $file))"
+		num_to_perm ${group}
+		printf "%5s %-16s: " "Other" "(Everyone Else)"
+		num_to_perm ${other}
+		echo
+	done
+
+}
+
 color_text_example(){
 	## This function is really just an example of how to use the above "color_text" function
 	mystring="$(color_text red hello world) $(color_text yellow Enjoy these colors) $(color_text cyan Goodbye!)"
