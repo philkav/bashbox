@@ -81,6 +81,50 @@ last_modified(){
 		utc=$(date --date="@$modified" --utc)
 		age_seconds=$(( $(now) - ${modified} ))
 		age=$(convert_seconds ${age_seconds})
-		printf "%-10s | %-28s | %-16s | %s\n" "${modified}"  "${utc}" "${age}" "${f}"
+		printf "%-10s | %-28s | %-16s | %s\n" "${modified}" "${utc}" "${age}" "${f}"
 	done
+}
+
+os_kernel(){
+	uname -s
+}
+
+os_version(){
+	os_data_file=/etc/os-release
+	source ${os_data_file}
+	echo ${PRETTY_NAME:-unknown}
+}
+
+user_data(){
+	IFS=':'
+	user_id=$(id -u)
+	passwd_data=($(getent passwd ${user_id}))
+	fields=("logname" "enc_passwd" "uid" "gid" "userinfo" "homedir" "shell")
+
+	for (( i=0; i<${#passwd_data[@]}; i++ )); do 
+		printf "%-12s = %s\n" "${fields[$i]}" "${passwd_data[$i]}"
+	done
+}
+
+color_text(){
+	local color=$1
+	shift
+	local message=$@
+	codes=(39 30 31 32 33 34 35 36 37\
+	       90 91 92 93 94 95 96 97 )
+	colors=(default black red green yellow blue magneta cyan lightgray \
+		darkgray lightred lightgreen lightyellow lightblue lightmagneta lightcyan white)
+
+	for (( i=0; i < ${#colors[@]}; i++)); do
+		[ "${colors[$i]}" == "${color}" ] && colorid=${codes[i]}
+	done
+
+	printf "\e[${colorid}m%s" "${message}"
+	tput sgr0
+}
+
+color_text_example(){
+	## This function is really just an example of how to use the above "color_text" function
+	mystring="$(color_text red hello world) $(color_text yellow Enjoy these colors) $(color_text cyan Goodbye!)"
+	echo ${mystring}
 }
