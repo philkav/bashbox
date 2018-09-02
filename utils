@@ -147,6 +147,8 @@ num_to_perm(){
 	# 1 1 1 | 7
 
 	num=$1
+	[ $num -gt 7 ] && return
+	[ $num -lt 0 ] && return
 	r=$((num / 4))
 	w=$((num % 4 / 2))
 	x=$((num % 2))
@@ -189,4 +191,9 @@ color_text_example(){
 	## This function is really just an example of how to use the above "color_text" function
 	mystring="$(color_text red hello world) $(color_text yellow Enjoy these colors) $(color_text cyan Goodbye!)"
 	echo ${mystring}
+}
+
+tcp_port_check(){
+	port=$1
+	fuser -n tcp ${port} 2>/dev/null  
 }
